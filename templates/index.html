@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Django To Do List App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/htmx/1.9.6/htmx.min.js" integrity="sha512-tGWc4YBM6ag1pJndcieiU2r+lJXdzBRk70mHE13JoGeZI/QdWQkQ6q1CL1xYdJtTOfARf5oPcxJCnS6bLaM+KA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<style>
+body {
+  margin: 0;
+  min-width: 250px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+
+ul li {
+  cursor: pointer;
+  position: relative;
+  padding: 12px 8px 12px 40px;
+  list-style-type: none;
+  background: #eee;
+  font-size: 18px;
+  transition: 0.2s;
+  
+
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+
+ul li:nth-child(odd) {
+  background: #f9f9f9;
+}
+
+
+ul li:hover {
+  background: #ddd;
+}
+
+
+ul li.checked {
+  background: #888;
+  color: #fff;
+  text-decoration: line-through;
+}
+
+
+ul li.checked::before {
+  content: '';
+  position: absolute;
+  border-color: #fff;
+  border-style: solid;
+  border-width: 0 2px 2px 0;
+  top: 10px;
+  left: 16px;
+  transform: rotate(45deg);
+  height: 15px;
+  width: 7px;
+}
+
+.close {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 12px 16px 12px 16px;
+}
+
+.close:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+.header {
+  background-color: #329ba8;
+  padding: 30px 40px;
+  color: white;
+  text-align: center;
+}
+
+
+.header:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+
+input {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  width: 75%;
+  padding: 10px;
+  float: left;
+  font-size: 16px;
+}
+
+
+.addBtn {
+  padding: 10px;
+  width: 25%;
+  background: #d9d9d9;
+  color: #555;
+  float: left;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 0;
+}
+
+.addBtn:hover {
+  background-color: #bbb;
+}
+</style>
+</head>
+<body>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js" integrity="sha512-CEiA+78TpP9KAIPzqBvxUv8hy41jyI3f2uHi7DGp/Y/Ka973qgSdybNegWFciqh6GrN2UePx2KkflnQUbUhNIA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/shortcuts/infinite.min.js" integrity="sha512-m3kH21aSkKrGeoqdb7IP7rlu1VcQee5VrjLQepeSOp5M05Wl6HwqJ1Jwo14EHOuBg77pkAlBtQuVMPVeXzfueg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+
+<div id="myDIV" class="header">
+  <h2 style="margin:5px">Django To Do List App</h2>
+  <form action="" method="POST">
+    {% csrf_token %}
+    <input type="text" name="title" id="myInput" placeholder="Title...">
+    <button type="submit" class="addBtn">Add</button>
+  </form>
+</div>
+{% comment %} <div id="todo-list"  style = "max-height: 40rem; overflow: scroll;">
+  <ul id="myUL">
+    {% for todo in todos reversed %}
+    <li>{{todo.title | title}} <span class="close"><a style="text-decoration: none; color: black;" href="delete/{{todo.id}}">Delete</a></span>
+      </li>
+    {% endfor %}
+  </ul>
+</div> {% endcomment %}
+
+<div style="height: 30rem; overflow: scroll;" id="todo-list">
+  <ul id="myUL" class="overflow-container infinite-container"  >
+    {% for todo in todos %}
+    <li class="infinite-item">{{ todo.title | title }} 
+      <span class="close"><a style="text-decoration: none; color: black;" href="delete/{{ todo.id }}">Delete</a></span></li>
+    {% endfor %}
+    {% if todos.has_next %}
+    <a style="display: none;" class="infinite-more-link" href="?page={{ todos.next_page_number }}">More</a>
+    {% endif %}
+  </ul>
+
+</div>
+
+<button id="load-more-button">Load More</button>
+
+{% comment %} <script src="/path/to/waypoints-infinite.min.js"></script> {% endcomment %}
+<script>
+  {% comment %} var CONTEXT_DEFAULT = new Waypoint({
+    element: document.querySelector('.infinite-container'),
+    handler: function() {
+      notify('Context example triggered')
+    },
+    context: document.querySelector('.overflow-scroll')
+  })
+  var infinite = CONTEXT_DEFAULT.Infinite({
+    element: $('.infinite-container')[0],
+    context: $('.overflow-container'),
+  }); {% endcomment %}
+
+  var infinite = new Waypoint.Infinite({
+    element: $('.infinite-container')[0],
+    context: $('#todo-list')[0], // You should use [0] to get the DOM element
+  });
+  
+  {% comment %} Paginate() {% endcomment %}
+
+</script>
+{% comment %} <script>
+  function isElementInContainer(el, container) {
+    var elRect = el.getBoundingClientRect();
+    var containerRect = container.getBoundingClientRect();
+
+    return (
+      elRect.top >= containerRect.top &&
+      elRect.left >= containerRect.left &&
+      elRect.bottom <= containerRect.bottom &&
+      elRect.right <= containerRect.right
+    );
+  }
+
+  var container = document.querySelector('.overflow-container');
+
+  container.addEventListener('scroll', function() {
+    var myElement = document.querySelector('.LINK');
+
+    if (isElementInContainer(myElement, container)) {
+      console.log('Element is in the container!');
+      myElement.classList.add('infinite-more-link')
+      Paginate()
+      // Do something when the element is in the container
+    } else {
+      console.log('Element is not in the container.');
+      Waypoint.destroyAll()
+      if (document.querySelector('.LINK') == null){
+        console.log('YO');
+
+        var link = document.createElement('a');
+
+        // Set attributes for the link
+        link.setAttribute('class', 'LINK');
+        link.setAttribute('href', '?page={{ todos.next_page_number }}');
+    
+        // Set the text content of the link
+        link.textContent = 'More';
+    
+        // Append the link to the body
+        container.appendChild(link);
+      }
+    }
+  });
+
+  // Initial check on page load
+  {% comment %} if (isElementInContainer(myElement, container)) {
+    console.log('Element is in the container!');
+  } else {
+    console.log('Element is not in the container.'); {% endcomment %}
+
+
+  {% comment %} } {% endcomment %}
+</body>
+</html>
